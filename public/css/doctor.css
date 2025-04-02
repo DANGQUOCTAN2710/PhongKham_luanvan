@@ -1,0 +1,50 @@
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+.sidebar {
+    height: 100vh;
+    padding-top: 20px;
+}
+.nav-tabs .nav-link.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.sidebar {
+    height: 100vh;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+.nav-link {
+    color: #333;
+    font-weight: 500;
+    transition: all 0.3s;
+    padding: 10px;
+    border-radius: 8px;
+}
+.nav-link:hover, .nav-link.active {
+    background: #007bff;
+    color: #fff !important;
+}
+.nav-item i {
+    margin-right: 8px;
+}
+.collapse .nav-link {
+    padding-left: 30px;
+}
+
+.hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+}
+
+.hover-btn:hover {
+    background-color: #0056b3 !important;
+    transition: background-color 0.3s ease-in-out;
+}
+
+td {
+    vertical-align: middle !important;
+}
