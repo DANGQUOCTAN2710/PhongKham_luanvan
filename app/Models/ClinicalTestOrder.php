@@ -45,4 +45,9 @@ class ClinicalTestOrder extends Model
     {
         return $this->hasMany(HospitalFee::class);
     }
+
+    public function clinicalTest()
+    {
+        return $this->belongsTo(ClinicalTest::class);
+    }
 }

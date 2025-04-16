@@ -41,42 +41,41 @@
             </thead>
             <tbody>
                 @foreach($fee_list as $fee)
-                <tr>
-                    <td hidden>$fee->id</td>
-                    <td>BN{{$fee->prescription->medicalRecord->medicalBook->patient->id}}</td>
-                    <td>{{ $fee->prescription->medicalRecord->medicalBook->patient->name }}</td>
-                    <td>{{ $fee->prescription->medicalRecord->medicalBook->patient->idUser }}</td>
-                    <td>{{ $fee->prescription->medicalRecord->medicalBook->patient->phone }}</td>
-                    <td>{{ number_format($fee->examination_fee, 0, ',', '.') }} đ</td>
-                    <td>{{ number_format($fee->medicine_fee, 0, ',', '.') }} đ</td>
-                    <td>{{ number_format($fee->clinical_fee, 0, ',', '.') }} đ</td>
-                    <td class="fw-bold">{{ number_format($fee->total_fee, 0, ',', '.') }} đ</td>
-                    <td>
-                        @if($fee->status == 'Đã thanh toán')
-                            <span class="text-success">Đã thanh toán</span>
-                        @else
-                            <span class="text-danger">Chưa thanh toán</span>
-                        @endif
-                    </td>
-                    <td class="text-center align-middle">
-                        <div class="d-flex gap-1 justify-content-center">
-                            <!-- Nút Xem chi tiết -->
-                            <a href="javascript:void(0)" 
-                               class="btn btn-info btn-lg d-flex align-items-center justify-content-center"
-                               onclick="openHospitalFeeModal({{ $fee->id }})">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <form action="{{ route('payment.approve', $fee->id  ) }}" method="POST">
-                                @csrf
-                                @method('PUT') <!-- Hoặc POST tùy vào cách bạn muốn xử lý -->
-                                <button type="submit" class="btn btn-success btn-lg d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            </form>
-                        </div>
-                        @include('doctor.pages.hospital_fees.review')
-                    </td>
-                </tr>
+                    <tr>
+                        <td>{{ $fee->id }}</td>
+                        <td>{{ optional($fee->medicalRecord->medicalBook->patient)->name }}</td>
+                        <td>{{ optional($fee->medicalRecord->medicalBook->patient)->idUser }}</td>
+                        <td>{{ optional($fee->medicalRecord->medicalBook->patient)->phone }}</td>
+                        <td>{{ number_format($fee->examination_fee, 0, ',', '.') }} đ</td>
+                        <td>{{ number_format($fee->medicine_fee, 0, ',', '.') }} đ</td>
+                        <td>{{ number_format($fee->clinical_fee, 0, ',', '.') }} đ</td>
+                        <td class="fw-bold">{{ number_format($fee->total_fee, 0, ',', '.') }} đ</td>
+                        <td>
+                            @if($fee->status == 'Đã thanh toán')
+                                <span class="text-success">Đã thanh toán</span>
+                            @else
+                                <span class="text-warning">Chưa thanh toán</span>
+                            @endif
+                        </td>
+                        <td class="text-center align-middle">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <!-- Nút Xem chi tiết -->
+                                <a href="javascript:void(0)" 
+                                class="btn btn-info btn-lg d-flex align-items-center justify-content-center"
+                                onclick="openHospitalFeeModal({{ $fee->id }})">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <form action="{{ route('payment.approve', $fee->id  ) }}" method="POST">
+                                    @csrf
+                                    @method('PUT') <!-- Hoặc POST tùy vào cách bạn muốn xử lý -->
+                                    <button type="submit" class="btn btn-success btn-lg d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            @include('doctor.pages.hospital_fees.review')
+                        </td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
@@ -89,30 +88,38 @@ function openHospitalFeeModal(feeId) {
         .then(response => response.json())
         .then(data => {
             // Cập nhật thông tin bệnh nhân
-            document.getElementById('modal_patient_id').textContent = data.patient_id;
+            document.getElementById('modal_patient_id').textContent = data.patientId;
             document.getElementById('modal_patient_name').textContent = data.patient_name;
             document.getElementById('modal_patient_age').textContent = data.patient_age;
             document.getElementById('modal_patient_idUser').textContent = data.idUser;
             document.getElementById('modal_patient_gender').textContent = data.patient_gender;
             document.getElementById('modal_patient_reason').textContent = data.reason;
             console.log(data);  // Kiểm tra dữ liệu
-
-            // Cập nhật danh sách thuốc
-            let medicineListHtml = '';
-            data.prescription_details.forEach((medicine, index) => {
-                medicineListHtml += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${medicine.name}</td>
-                        <td>${medicine.quantity}</td>
-                        <td>${medicine.unit_price}</td>
-                        <td>${medicine.total_price}</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('hospitalFeeMedicineList').innerHTML = medicineListHtml;
-
-            if (data.clinical_tests && data.clinical_tests.length > 0) {
+            if(data.prescription_details.length > 0){
+                document.getElementById('hospitalMedicineSection').style.display = 'block';
+                if (data.prescription_details) {
+                    let medicineListHtml = '';
+                    data.prescription_details.forEach((medicine, index) => {
+                        medicineListHtml += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${medicine.name}</td>
+                                <td>${medicine.quantity}</td>
+                                <td>${medicine.unit_price}</td>
+                                <td>${medicine.total_price}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('hospitalFeeMedicineList').innerHTML = medicineListHtml;
+                }
+            }
+            else{
+                document.getElementById('hospitalMedicineSection').style.display = 'none';   
+            }
+            
+            if(data.clinical_tests.length > 0 || data.ultrasounds.length > 0 || data.diagnostic_imaging.length > 0){
+                document.getElementById('hospitalFeeTestSection').style.display = 'block';
+                if (data.clinical_tests) {
                 let clinicalTestListHtml = '';
                 data.clinical_tests.forEach((test, index) => {
                     clinicalTestListHtml += `
@@ -126,47 +133,52 @@ function openHospitalFeeModal(feeId) {
                 });
                 document.getElementById('hospitalFeeClinicalTestsList').innerHTML = clinicalTestListHtml;
                 document.getElementById('modal_total_test').parentElement.style.display = 'block';
-            } else {
-                document.getElementById('hospitalFeeClinicalTestsSection').style.display = 'none';
+                } else {
+                    document.getElementById('hospitalFeeClinicalTestsSection').style.display = 'none';
+                }
+
+                // Kiểm tra nếu có Siêu âm
+                if (data.ultrasounds) {
+                    let ultrasoundListHtml = '';
+                    data.ultrasounds.forEach((ultrasound, index) => {
+                        ultrasoundListHtml += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${ultrasound.name}</td>
+                                <td>${ultrasound.unit_price}</td>
+                                <td>${ultrasound.total_price}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('hospitalFeeUltrasoundList').innerHTML = ultrasoundListHtml;
+                    document.getElementById('hospitalFeeUltrasoundSection').style.display = 'block';
+                } else {
+                    document.getElementById('hospitalFeeUltrasoundSection').style.display = 'none';
+                }
+
+                // Kiểm tra nếu có X-quang
+                if (data.imaging) {
+                    let imagingListHtml = '';
+                    data.imaging.forEach((imaging, index) => {
+                        imagingListHtml += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${imaging.name}</td>
+                                <td>${imaging.unit_price}</td>
+                                <td>${imaging.total_price}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('hospitalFeeImagingList').innerHTML = imagingListHtml;
+                    document.getElementById('hospitalFeeImagingSection').style.display = 'block';
+                } else {
+                    document.getElementById('hospitalFeeImagingSection').style.display = 'none';
+                }    
             }
-
-            // // Kiểm tra nếu có Siêu âm
-            // if (data.ultrasounds && data.ultrasounds.length > 0) {
-            //     let ultrasoundListHtml = '';
-            //     data.ultrasounds.forEach((ultrasound, index) => {
-            //         ultrasoundListHtml += `
-            //             <tr>
-            //                 <td>${index + 1}</td>
-            //                 <td>${ultrasound.name}</td>
-            //                 <td>${ultrasound.unit_price}</td>
-            //                 <td>${ultrasound.total_price}</td>
-            //             </tr>
-            //         `;
-            //     });
-            //     document.getElementById('hospitalFeeUltrasoundList').innerHTML = ultrasoundListHtml;
-            //     document.getElementById('hospitalFeeUltrasoundSection').style.display = 'block';
-            // } else {
-            //     document.getElementById('hospitalFeeUltrasoundSection').style.display = 'none';
-            // }
-
-            // // Kiểm tra nếu có X-quang
-            // if (data.imaging && data.imaging.length > 0) {
-            //     let imagingListHtml = '';
-            //     data.imaging.forEach((imaging, index) => {
-            //         imagingListHtml += `
-            //             <tr>
-            //                 <td>${index + 1}</td>
-            //                 <td>${imaging.name}</td>
-            //                 <td>${imaging.unit_price}</td>
-            //                 <td>${imaging.total_price}</td>
-            //             </tr>
-            //         `;
-            //     });
-            //     document.getElementById('hospitalFeeImagingList').innerHTML = imagingListHtml;
-            //     document.getElementById('hospitalFeeImagingSection').style.display = 'block';
-            // } else {
-            //     document.getElementById('hospitalFeeImagingSection').style.display = 'none';
-            // }    
+            else{
+                document.getElementById('hospitalFeeTestSection').style.display = 'none';
+            }
+            
             // Cập nhật tổng viện phí
             document.getElementById('modal_total_medicine').textContent = data.total_medicine_fee;
             if(data.total_clinical_fee != 0 && data.total_ultrasound_fee != 0  && data.total_diagnostic_imaging_fee != 0){

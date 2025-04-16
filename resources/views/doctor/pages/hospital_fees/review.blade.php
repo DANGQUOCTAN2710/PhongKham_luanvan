@@ -26,7 +26,7 @@
                 <hr>
 
                 <!-- Đơn thuốc -->
-                <div class="table-responsive">
+                <div class="table-responsive" id="hospitalMedicineSection">
                     <h5 class="text-primary">🔹 Đơn Thuốc</h5>
                     <table class="table table-bordered mx-auto" style="max-width: 700px;">
                         <thead class="table-light text-center">
@@ -45,11 +45,11 @@
                 <hr>
 
                 <!-- Cận Lâm Sàng -->
-                <div class="table-responsive" id="hospitalFeeTestSection" style="display: none;">
+                <div class="table-responsive" id="hospitalFeeTestSection">
                     <h5 class="text-primary">🔹 Cận Lâm Sàng</h5>
 
                     <!-- Xét nghiệm -->
-                    <div id="hospitalFeeClinicalTestsSection" style="display: none;">
+                    <div id="hospitalFeeClinicalTestsSection">
                         <h6>Xét nghiệm</h6>
                         <table class="table table-bordered mx-auto" style="max-width: 700px;">
                             <thead class="table-light text-center">
@@ -65,7 +65,7 @@
                     </div>
 
                     <!-- Siêu âm -->
-                    <div id="hospitalFeeUltrasoundSection" style="display: none;">
+                    <div id="hospitalFeeUltrasoundSection">
                         <h6>Siêu Âm</h6>
                         <table class="table table-bordered mx-auto" style="max-width: 700px;">
                             <thead class="table-light text-center">
@@ -81,7 +81,7 @@
                     </div>
 
                     <!-- X-quang -->
-                    <div id="hospitalFeeImagingSection" style="display: none;">
+                    <div id="hospitalFeeImagingSection">
                         <h6>X-quang</h6>
                         <table class="table table-bordered mx-auto" style="max-width: 700px;">
                             <thead class="table-light text-center">

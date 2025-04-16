@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class HospitalFee extends Model
 {
     protected $fillable = [
+        'medical_record_id',
         'prescription_id',
         'clinical_test_order_id',
         'examination_fee',
@@ -27,4 +28,8 @@ class HospitalFee extends Model
         return $this->belongsTo(ClinicalTestOrder::class);
     }
 
+    public function medicalRecord()
+    {
+        return $this->belongsTo(MedicalRecord::class);
+    }
 }

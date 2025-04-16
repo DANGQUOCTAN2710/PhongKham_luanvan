@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('hospital_fees', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('prescription_id')->constrained('prescriptions')->onDelete('cascade'); // Đơn thuốc
+            $table->foreignId('prescription_id')->nullable()->constrained('prescriptions')->onDelete('cascade'); // Đơn thuốc
             $table->foreignId('clinical_test_order_id')->nullable()->constrained('clinical_test_orders')->onDelete('cascade'); // Cận lâm sàng
             $table->decimal('examination_fee', 10, 2)->default(100000); // Phí khám
             $table->decimal('medicine_fee', 10, 2);     // Phí thuốc

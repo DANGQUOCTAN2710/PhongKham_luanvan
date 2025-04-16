@@ -197,7 +197,7 @@ class ExamController extends Controller
             }
 
             if (!empty($prescriptionDetails)) {
-                PrescriptionDetail::insert($prescriptionDetails);
+                PrescriptionDetail::insert($prescriptionDetails); 
                 $prescription->total_price = $totalPrescriptionPrice;
                 $prescription->save();
 
@@ -212,6 +212,7 @@ class ExamController extends Controller
 
                 // Tạo bản ghi viện phí
                 HospitalFee::create([
+                    'medical_record_id'    => $id,
                     'prescription_id'      => $prescription->id,
                     'clinical_test_order_id' => null, // Không có cận lâm sàng trong trường hợp này
                     'examination_fee'      => $examinationFee,
@@ -248,10 +249,11 @@ class ExamController extends Controller
                             'diagnostic_imaging_id'  => null,
                             'status'                 => 'Chờ thực hiện',
                             'created_at'             => now(),
-                            'updated_at'             => now()
+                            'updated_at'             => now(),
+                            'fee'                    => $test->price   
                         ];
 
-                        $totalTestFee += $test->fee;
+                        $totalTestFee += $test->price;
                     }
                 }
             }
@@ -268,10 +270,11 @@ class ExamController extends Controller
                             'diagnostic_imaging_id'  => null,
                             'status'                 => 'Chờ thực hiện',
                             'created_at'             => now(),
-                            'updated_at'             => now()
+                            'updated_at'             => now(),
+                            'fee'                    => $ultrasound->price 
                         ];
 
-                        $totalTestFee += $ultrasound->fee;
+                        $totalTestFee += $ultrasound->price;
                     }
                 }
             }
@@ -288,20 +291,39 @@ class ExamController extends Controller
                             'diagnostic_imaging_id'  => $imagingId,
                             'status'                 => 'Chờ thực hiện',
                             'created_at'             => now(),
-                            'updated_at'             => now()
+                            'updated_at'             => now(),
+                            'fee'                    => $imaging->price 
                         ];
 
-                        $totalTestFee += $imaging->fee;
+                        $totalTestFee += $imaging->price;
                     }
                 }
             }
+            if(!empty($testDetails)){
+                MedicalRecord::where('id', $id)->update(['status' => 'chờ CLS']);
+                ClinicalTestOrderDetail::insert($testDetails);
 
-            MedicalRecord::where('id', $id)->update(['status' => 'chờ CLS']);
-            ClinicalTestOrderDetail::insert($testDetails);
+                $testRequest->total_fee = $totalTestFee;
+                $testRequest->save();
 
-            // Cập nhật tổng phí vào bảng clinical_test_orders
-            $testRequest->update(['total_fee' => $totalTestFee]);
-            HospitalFee::calculateTotalFee($prescription->id);
+                // Lưu viện phí cho cận lâm sàng
+                $examinationFee = 100000;  // Phí khám (mặc định hoặc tính toán)
+                $medicineFee = 0; // Tổng phí thuốc từ PrescriptionDetail
+                $clinicalFee = $totalTestFee;  // Phí cận lâm sàng nếu có
+                $totalFee = $examinationFee + $medicineFee + $clinicalFee;
+
+                HospitalFee::create([
+                    'medical_record_id'    => $id,
+                    'prescription_id'      => null,
+                    'clinical_test_order_id' => $testRequest->id, // Không có cận lâm sàng trong trường hợp này
+                    'examination_fee'      => $examinationFee,
+                    'medicine_fee'         => $medicineFee,
+                    'clinical_fee'         => $clinicalFee,
+                    'total_fee'            => $totalFee,
+                    'status'               => 'Chưa thanh toán'  // Trạng thái thanh toán mặc định
+                ]);
+            }
+
         }
 
         // 🔹 5️⃣ Nếu có ngày tái khám => Tạo lịch tái khám

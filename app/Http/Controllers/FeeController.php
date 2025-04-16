@@ -12,7 +12,7 @@ class FeeController extends Controller
      */
     public function index()
     {
-        $fee_list = HospitalFee::with('prescription.medicalRecord.medicalBook.patient')->get();
+        $fee_list = HospitalFee::with('medicalRecord.medicalBook.patient')->get();
         return view('doctor.pages.hospital_fees.list', compact('fee_list'));
     }
 
@@ -49,19 +49,25 @@ class FeeController extends Controller
         // Lấy thông tin viện phí cùng với thông tin liên quan (bao gồm prescription, clinical_test_order, ultrasound và diagnostic_imaging)
         $fee = HospitalFee::with([
             'prescription.details',  // Lấy chi tiết thuốc
-            'clinicalTestOrder.clinicalTest',  // Lấy thông tin xét nghiệm
-            'clinicalTestOrder.ultrasound',  // Lấy thông tin siêu âm
-            'clinicalTestOrder.diagnosticImaging',  // Lấy thông tin chẩn đoán hình ảnh
-            'prescription.medicalRecord.medicalBook.patient', // Lấy thông tin bệnh nhân
+            'clinicalTestOrder.details.clinicalTest',  // Lấy thông tin xét nghiệm
+            'clinicalTestOrder.details.ultrasound',  // Lấy thông tin siêu âm
+            'clinicalTestOrder.details.diagnosticImaging',  // Lấy thông tin chẩn đoán hình ảnh
+            'medicalRecord.medicalBook.patient', // Lấy thông tin bệnh nhân
         ])->findOrFail($id);
     
         if ($fee) {
-            $patient = $fee->prescription->medicalRecord->medicalBook->patient;
-            $prescriptionDetails = $fee->prescription->details;
-            $clinicalTests = $fee->clinicalTestOrder ? $fee->clinicalTestOrder->clinicalTest : null;
-            $ultrasounds = $fee->clinicalTestOrder ? $fee->clinicalTestOrder->ultrasound : null;
-            $diagnosticImaging = $fee->clinicalTestOrder ? $fee->clinicalTestOrder->diagnosticImaging : null;
-            $medicalRecord = $fee->prescription->medicalRecord;
+            $patient = optional($fee->medicalRecord?->medicalBook)->patient;
+            $medicalRecord = $fee->medicalRecord;
+
+            if (!$patient || !$medicalRecord) {
+                return response()->json(['error' => 'Không tìm thấy thông tin bệnh nhân hoặc hồ sơ bệnh án.'], 404);
+            }
+
+            $prescriptionDetails = optional($fee->prescription)->details ?? collect();
+            $clinicalTests = $fee->clinicalTestOrder?->clinicalTest ?? collect();
+            $ultrasounds = $fee->clinicalTestOrder?->ultrasound ?? collect();
+            $diagnosticImaging = $fee->clinicalTestOrder?->diagnosticImaging ?? collect();
+
             // Tính tổng tiền dịch vụ và thuốc
             $totalMedicineFee = $prescriptionDetails->sum('total_price');
             $totalClinicalFee = $clinicalTests ? $clinicalTests->sum('price') : 0;

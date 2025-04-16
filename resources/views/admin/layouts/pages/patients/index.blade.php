@@ -39,6 +39,8 @@
                 <tr>
                     <td>{{ $patient->name }}</td>
                     <td>{{ $patient->phone }}</td>
+                    <td>{{ $patient->idUser}}</td>
+                    <td>{{ $patient->address}}</td>
                     <td>{{ $patient->clinic->name ?? 'Không có' }}</td>
                     <td>
                         <a href="{{ route('patients.edit', $patient->id) }}" class="btn btn-warning">Sửa</a>
